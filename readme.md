@@ -10,3 +10,4 @@ Some commands include:
 /random-initiator
 /random-duelist
 /random-sentinel
+/act-info
