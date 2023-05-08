@@ -45,7 +45,8 @@ async def rand_controller(interaction):
                             headers={'X-Riot-Token': riot_key}, params={'locale': 'en-US'})
     data = response.json()
     agent = random.choice(data['characters'])
-    while agent['name'] == 'Null UI Data!' or role_dict[agent['name']] != Role.Controller:
+    
+    while agent['name'] not in role_dict.keys() or role_dict[agent['name']] != Role.Controller:
         agent = random.choice(data['characters'])
 
     await interaction.followup.send(agent['name'])
@@ -58,7 +59,7 @@ async def rand_sentinel(interaction):
                             headers={'X-Riot-Token': riot_key}, params={'locale': 'en-US'})
     data = response.json()
     agent = random.choice(data['characters'])
-    while agent['name'] == 'Null UI Data!' or role_dict[agent['name']] != Role.Sentinel:
+    while agent['name'] not in role_dict.keys() or role_dict[agent['name']] != Role.Sentinel:
         agent = random.choice(data['characters'])
 
     await interaction.followup.send(agent['name'])
@@ -71,7 +72,7 @@ async def rand_duelist(interaction):
                             headers={'X-Riot-Token': riot_key}, params={'locale': 'en-US'})
     data = response.json()
     agent = random.choice(data['characters'])
-    while agent['name'] == 'Null UI Data!' or role_dict[agent['name']] != Role.Duelist:
+    while agent['name'] not in role_dict.keys() or role_dict[agent['name']] != Role.Duelist:
         agent = random.choice(data['characters'])
 
     await interaction.followup.send(agent['name'])
@@ -84,7 +85,7 @@ async def rand_initiator(interaction):
                             headers={'X-Riot-Token': riot_key}, params={'locale': 'en-US'})
     data = response.json()
     agent = random.choice(data['characters'])
-    while agent['name'] == 'Null UI Data!' or role_dict[agent['name']] != Role.Initiator:
+    while agent['name'] not in role_dict.keys() or role_dict[agent['name']] != Role.Initiator:
         agent = random.choice(data['characters'])
 
     await interaction.followup.send(agent['name'])
@@ -164,7 +165,10 @@ async def act_info(interaction, episode: discord.app_commands.Choice[str], acts:
     response = requests.get(f'{url}/val/ranked/v1/leaderboards/by-act/{act_id}',
                             headers={'X-Riot-Token': riot_key}, params={'size': players, 'startIndex': index})
     if response.status_code != 200:
-        await interaction.followup.send(f'ERROR: {response.status_code} bad index or size')
+        if response.status_code == 404:
+            await interaction.followup.send('ERROR: Bad index or size')
+        else:
+            await interaction.followup.send(f'ERROR: {response.status_code}')
         return
     data = response.json()        
 
@@ -172,6 +176,8 @@ async def act_info(interaction, episode: discord.app_commands.Choice[str], acts:
     print(data['players'])
     for player in data['players']:
         message += (f'Rank: {player["leaderboardRank"]}\nPlayer: {player["gameName"]}\nRating:{player["rankedRating"]}\nWins:{player["numberOfWins"]}\n\n')
+        if len(message) > 2000:
+            break
 
     await interaction.followup.send(message[:2000])
 
