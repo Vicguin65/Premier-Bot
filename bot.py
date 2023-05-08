@@ -109,10 +109,8 @@ def generate_episode_list():
                             headers={'X-Riot-Token': riot_key}, params={'locale': 'en-US'})
     data = response.json()
     list_episodes = [{episode['name']: episode['id']}
-                     for episode in data['acts'] if episode['name'].startswith('EPISODE')]
+                     for episode in data['acts'] if episode['type'] != 'act']
     list_choices = []
-    list_choices.append(discord.app_commands.Choice(
-        name='Closed Beta', value='0df5adb9-4dcb-6899-1306-3e9860661dd3'))
     for episode in list_episodes:
         list_choices.append(discord.app_commands.Choice(
             name=f'{list(episode.keys())[0]}', value=f'{episode[list(episode.keys())[0]]}'))
