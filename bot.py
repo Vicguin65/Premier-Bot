@@ -38,75 +38,41 @@ async def team_comp(interaction):
     await interaction.followup.send(message)
 
 
-@tree.command(name='random-controller', description='Generate a random controller')
-async def rand_controller(interaction):
-    await interaction.response.defer()
-    response = requests.get(f'{url}/val/content/v1/contents',
-                            headers={'X-Riot-Token': riot_key}, params={'locale': 'en-US'})
-    data = response.json()
-    agent = random.choice(data['characters'])
-    
-    while agent['name'] not in role_dict.keys() or role_dict[agent['name']] != Role.Controller:
-        agent = random.choice(data['characters'])
-
-    await interaction.followup.send(agent['name'])
-
-
-@tree.command(name='random-sentinel', description='Generate a random sentinel')
-async def rand_sentinel(interaction):
-    await interaction.response.defer()
-    response = requests.get(f'{url}/val/content/v1/contents',
-                            headers={'X-Riot-Token': riot_key}, params={'locale': 'en-US'})
-    data = response.json()
-    agent = random.choice(data['characters'])
-    while agent['name'] not in role_dict.keys() or role_dict[agent['name']] != Role.Sentinel:
-        agent = random.choice(data['characters'])
-
-    await interaction.followup.send(agent['name'])
-
-
-@tree.command(name='random-duelist', description='Generate a random duelist')
-async def rand_duelist(interaction):
-    await interaction.response.defer()
-    response = requests.get(f'{url}/val/content/v1/contents',
-                            headers={'X-Riot-Token': riot_key}, params={'locale': 'en-US'})
-    data = response.json()
-    agent = random.choice(data['characters'])
-    while agent['name'] not in role_dict.keys() or role_dict[agent['name']] != Role.Duelist:
-        agent = random.choice(data['characters'])
-
-    await interaction.followup.send(agent['name'])
-
-
-@tree.command(name='random-initiator', description='Generate a random initiator')
-async def rand_initiator(interaction):
-    await interaction.response.defer()
-    response = requests.get(f'{url}/val/content/v1/contents',
-                            headers={'X-Riot-Token': riot_key}, params={'locale': 'en-US'})
-    data = response.json()
-    agent = random.choice(data['characters'])
-    while agent['name'] not in role_dict.keys() or role_dict[agent['name']] != Role.Initiator:
-        agent = random.choice(data['characters'])
-
-    await interaction.followup.send(agent['name'])
-
-
 @tree.command(name='random-agent', description='Generate a random agent')
-async def rand_agent(interaction):
+@app_commands.describe(role='(Optional) Choose a role for the agent')
+@app_commands.choices(role=[app_commands.Choice(name='controller',value=1),app_commands.Choice(name='initiator',value=2),app_commands.Choice(name='duelist',value=3),app_commands.Choice(name='sentinel',value=4)])
+async def rand_agent(interaction, role: app_commands.Choice[int]=None):
     await interaction.response.defer()
     response = requests.get(f'{url}/val/content/v1/contents',
                             headers={'X-Riot-Token': riot_key}, params={'locale': 'en-US'})
     data = response.json()
     agent = random.choice(data['characters'])
-    while agent['name'] == 'Null UI Data!':
-        agent = random.choice(data['characters'])
-
-    await interaction.followup.send(agent['name'])
+    if role == None:
+        while agent['name'] not in role_dict.keys():
+            break
+        await interaction.followup.send(agent['name'])
+    else: 
+        if role.value == 1:
+            agent = random.choice(role_controller_list)
+        elif role.value == 2:
+            agent = random.choice(role_initiator_list)
+        elif role.value == 3:
+            agent = random.choice(role_duelist_list)
+        elif role.value == 4:
+            agent = random.choice(role_sentinel_list)
+        else:
+            await interaction.followup.send('ERROR NOT A CORRECT ROLE')
+        await interaction.followup.send(agent)
+    
 
 
 def generate_episode_list():
     response = requests.get(f'{url}/val/content/v1/contents',
                             headers={'X-Riot-Token': riot_key}, params={'locale': 'en-US'})
+    if response.status_code != 200:
+        print('ERROR: NOT 202 RESPONSE')
+        return
+    
     data = response.json()
     list_episodes = [{episode['name']: episode['id']}
                      for episode in data['acts'] if episode['type'] != 'act']
@@ -158,8 +124,6 @@ async def act_info(interaction, episode: discord.app_commands.Choice[str], acts:
     if index < 0:
         index = 0
 
-    print('\n\nid is:')
-    print(act_id)
     response = requests.get(f'{url}/val/ranked/v1/leaderboards/by-act/{act_id}',
                             headers={'X-Riot-Token': riot_key}, params={'size': players, 'startIndex': index})
     if response.status_code != 200:
@@ -171,7 +135,6 @@ async def act_info(interaction, episode: discord.app_commands.Choice[str], acts:
     data = response.json()        
 
     message = f'You Chose {episode.name} {acts.name}\n\n'
-    print(data['players'])
     for player in data['players']:
         message += (f'Rank: {player["leaderboardRank"]}\nPlayer: {player["gameName"]}\nRating:{player["rankedRating"]}\nWins:{player["numberOfWins"]}\n\n')
         if len(message) > 2000:

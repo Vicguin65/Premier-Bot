@@ -1,6 +1,6 @@
-from enum import Enum
+from enum import IntEnum
 
-class Role(Enum):
+class Role(IntEnum):
     Controller = 1,
     Initiator = 2,
     Duelist = 3,
