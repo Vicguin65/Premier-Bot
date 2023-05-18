@@ -43,14 +43,11 @@ async def team_comp(interaction):
 @app_commands.choices(role=[app_commands.Choice(name='controller',value=1),app_commands.Choice(name='initiator',value=2),app_commands.Choice(name='duelist',value=3),app_commands.Choice(name='sentinel',value=4)])
 async def rand_agent(interaction, role: app_commands.Choice[int]=None):
     await interaction.response.defer()
-    response = requests.get(f'{url}/val/content/v1/contents',
-                            headers={'X-Riot-Token': riot_key}, params={'locale': 'en-US'})
-    data = response.json()
-    agent = random.choice(data['characters'])
+
     if role == None:
-        while agent['name'] not in role_dict.keys():
-            break
-        await interaction.followup.send(agent['name'])
+        agent = random.choice(list(role_dict.keys()))
+        await interaction.followup.send(agent)
+
     else: 
         if role.value == 1:
             agent = random.choice(role_controller_list)
