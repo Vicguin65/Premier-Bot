@@ -7,6 +7,7 @@ class Role(IntEnum):
     Sentinel = 4
 
 role_dict = {
+    'Deadlock':Role.Sentinel
     'Gekko':Role.Initiator,
     'Fade':Role.Initiator,
     'Breach':Role.Initiator,
